@@ -9,10 +9,6 @@ TOKEN = ' ' # необходимо заполнить
 CRYPTS_PAIR = ["ETHUSDT", "BTCUSDT", "LTCUSDT", "XRPUSDT", "BNBUSDT", "DOGEUSDT"]
 
 is_running = False
-current_total = 0.0
-current_price = 0.0
-previous_total = 0.0
-previous_price = 0.0
 
 class SQLighter :
 
@@ -47,7 +43,6 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-
 db = SQLighter('db.db')
 
 @dp.message_handler(commands=['subscribe'])
@@ -71,10 +66,7 @@ async def unsubscribe(message: types.Message):
 async def message(message: types.Message):
     global is_running
     is_running = True
-    global current_total
-    global previous_total
-    global current_price
-    global previous_price
+    current_total = current_price = previous_total = previous_price = 0.0
     await bot.send_message(message.from_user.id, "Парсер запущен!")
     while is_running is True:
         for p in CRYPTS_PAIR:
@@ -82,9 +74,8 @@ async def message(message: types.Message):
             results = r.json()
             r2 = requests.get("https://api.binance.com/api/v3/ticker/24hr", params=dict(symbol=p))
             results2 = r2.json()
-
             for x in range(0,100):
-                if ((float(results["bids"][x][0]) * float(results["bids"][x][1])) > (float(results2["quoteVolume"]) / 250.0) and
+                if ((float(results["bids"][x][0]) * float(results["bids"][x][1])) > (float(results2["quoteVolume"]) / 50.0) and 
                     (((float(results["bids"][x][0]) * float(results["bids"][x][1])) != current_total) and
                     (float(results["bids"][x][0]) != current_price)) and
                     (((float(results["bids"][x][0]) * float(results["bids"][x][1])) != previous_total) and
